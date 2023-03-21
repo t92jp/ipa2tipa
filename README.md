@@ -1,9 +1,9 @@
-Note that this is a program for personal practicing
+Visit [here](https://t92jp.github.io/ipa2tipa/) to try it out.
 
 # IPA to TIPA
-ipa2tipa is a program to convert IPA: International Phonetid Alphabet to TIPA, a IPA notation for TeX.
+ipa2tipa is a program to convert IPA: International Phonetid Alphabet into TIPA, a IPA notation for TeX.
 
-## Attribute
+## Attributes
 ipa2tipa offers a class named "ipa" having some attribute shown below.
 
 | Attribute        | Content 
@@ -11,14 +11,14 @@ ipa2tipa offers a class named "ipa" having some attribute shown below.
 | `ipa.ipa`        | International Phonetic Alphabet itself 
 | `ipa.xords`[^*]  | IPA decomposed and express by hex according to UTF-8 
 | `ipa.charset`    | xords arranged in the unit of character 
-| `ipa.tipa`       | TIPA translated from IPA 
+| `ipa.tipa`       | TIPA converted from IPA 
 
-IPA is translated into TIPA in this order.
+IPA is converted into TIPA in this order.
 
 [^*]: xords stands for "hexadecimal `ord`s. <br>
 (`ord` is a built-in function translating char into Unicode decimal)
 
-## Method
+## Methods
 To realize translation above, ipa2tipa has some methods.
 
 | Method          | In -> Out      | Content 
@@ -26,4 +26,13 @@ To realize translation above, ipa2tipa has some methods.
 | `ipa.init`      | ipa -> void    | convert IPAs into each attribute 
 | `ipa.decompose` | ipa -> str[]   | decompose IPAs into UTF-8 hexadecimals
 | `ipa.recognize` | ipa -> str[][] | put a character and modifiers together
-| `ipa.ipa2tipa`  | ipa -> str     | translate parsed UTF-8s into TIPA
+| `ipa.ipa2tipa`  | ipa -> str     | convert parsed UTF-8s into TIPA
+
+## Files
+| Name            | Content 
+|--               |--
+| `docs`          | files for https://t92jp.github.io/ipa2tipa/
+| `README.md`     | what you're reading right now
+| `uni2tipa0.csv` | data in the format of `UTF-8 (hex), tipa macro taking 0 args`
+| `uni2tipa1.csv` | data in the format of `UTF-8 (hex), tipa macro taking 1 arg`
+| `uni2tipa2.csv` | data in the format of `UTF-8 (hex), tipa macro taking 2 args`
