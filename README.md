@@ -1,10 +1,10 @@
 Visit [here](https://t92jp.github.io/ipa2tipa/) to try it out.
 
 # IPA to TIPA
-ipa2tipa is a program to convert IPA: International Phonetid Alphabet into TIPA, a IPA notation for TeX.
+ipa2tipa is a program to convert International Phonetic Alphabet (IPA) into TeX IPA (TIPA), an IPA notation for $\LaTeX$.
 
 ## Attributes
-ipa2tipa offers a class named "ipa" having some attribute shown below.
+ipa2tipa offers an `ipa` class having some attributes shown below.
 
 | Attribute        | Content 
 | --               | -- 
