@@ -34,7 +34,7 @@ To realize translation above, ipa2tipa has some methods.
 | `LICENSE.md`          | this script is distributed under MIT License
 | `ipa2tipa.py`         | main script 
 | `test_ipa2tipa.py`    | brief unittests implemented with a standard library `unittest`
-| `uni2tipa-subsup.csv` | data in the format of `UTF-8 (hex), tipa macro denoting next superscript or subscript`
+| `uni2tipa-subsup.csv` | data in the format of `UTF-8 (hex), tipa macro denoting next super/subscript`
 | `uni2tipa-tone.csv`   | data in the format of `UTF-8 (hex), tipa macro of tone letters`
 | `uni2tipa0.csv`       | data in the format of `UTF-8 (hex), tipa macro taking 0 args`
 | `uni2tipa1.csv`       | data in the format of `UTF-8 (hex), tipa macro taking 1 arg`
