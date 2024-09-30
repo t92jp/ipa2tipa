@@ -28,10 +28,14 @@ To realize translation above, ipa2tipa has some methods.
 | `ipa.to_tipa`    | ipa -> str     | get ipa.tipa
 
 ## Files
-| Name            | Content 
-|--               |--
-| `README.md`     | what you are reading right now
-| `LICENSE.md`    | this script is distributed under MIT License
-| `uni2tipa0.csv` | data in the format of `UTF-8 (hex), tipa macro taking 0 args`
-| `uni2tipa1.csv` | data in the format of `UTF-8 (hex), tipa macro taking 1 arg`
-| `uni2tipa2.csv` | data in the format of `UTF-8 (hex), tipa macro taking 2 args`
+| Name                  | Content 
+|--                     |--
+| `README.md`           | what you are reading right now
+| `LICENSE.md`          | this script is distributed under MIT License
+| `ipa2tipa.py`         | main script 
+| `test_ipa2tipa.py`    | brief unittests implemented with a standard library `unittest`
+| `uni2tipa-subsup.csv` | data in the format of `UTF-8 (hex), tipa macro denoting next superscript or subscript`
+| `uni2tipa-tone.csv`   | data in the format of `UTF-8 (hex), tipa macro of tone letters`
+| `uni2tipa0.csv`       | data in the format of `UTF-8 (hex), tipa macro taking 0 args`
+| `uni2tipa1.csv`       | data in the format of `UTF-8 (hex), tipa macro taking 1 arg`
+| `uni2tipa2.csv`       | data in the format of `UTF-8 (hex), tipa macro taking 2 args`
