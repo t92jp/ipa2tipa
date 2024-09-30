@@ -1,5 +1,3 @@
-<super>,\super 
-<sub>, \sub 
 000a,
 0020, 
 005b,[
@@ -147,7 +145,7 @@
 02b4,
 02b7,\textsuperscript{w}
 02bc,'
-02c0,\super Q
+02c0,\super{P}
 02c8,"
 02cc,""
 02d0,:

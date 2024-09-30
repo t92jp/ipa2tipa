@@ -1,68 +1,90 @@
 from unicodedata import decomposition
 import csv
-from itertools import chain
+from pathlib import Path
 
-class ipa():
-    # set dict
-    UNI2TIPA = list()
+class IPA(str):
+    # Load dictionaries
+    UNI2TIPA = []
+    script_dir = Path(__file__).parent
     for i in range(3):
-        d = dict()
-        with open(f"uni2tipa{i}.csv", 'r', encoding="utf-8") as f:
-            for l in csv.reader(f, quoting=csv.QUOTE_NONE):
-                d[l[0]] = l[1]
-        UNI2TIPA.append(d)
+        with open(script_dir / f"uni2tipa{i}.csv", 'r', encoding="utf-8") as f:
+            UNI2TIPA.append({row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)})
 
-    def __init__(self, txt):
-        self.ipa = txt
-        self.xords = self.decompose()
-        self.charlist = self.parse()
-        self.tipa = self.ipa2tipa()
+    def __new__(cls, content):
+        return super().__new__(cls, content)
 
-    def decompose(self):
-        """ "ccc" -> "xxxx xxxx xxxx" """
-        xords = list()
-        for c in self.ipa:
-            decom = decomposition(c) # 'c' -> "cc"
-            if decom: xords += decom.split() # 'XXXX XXXX' -> ['XXXX', 'XXXX']
-            else: xords.append(hex(ord(c))[2:].rjust(4, '0')) # 'c' -> 'XXXX'
-        return list(map(lambda x: x.lower(), xords)) 
+    def __init__(self, content):
+        super().__init__()
+        self.xords = self._decompose()
+        self.charlist = self._parse()
+        self.tipa = self._ipa2tipa()
+
+    def __add__(self, other):
+        if isinstance(other, IPA):
+            return IPA(super().__add__(other))
+        elif isinstance(other, str):
+            return IPA(super().__add__(other))
+        else:
+            return NotImplemented
+
+    def __radd__(self, other):
+        if isinstance(other, str):
+            return IPA(other + self)
+        else:
+            return NotImplemented
+
+    def _decompose(self):
+        """Convert string to list of lowercase hex codes."""
+        xords = []
+        for c in self:
+            decom = decomposition(c)
+            if decom:
+                xords.extend(code.lower() for code in decom.split())
+            else:
+                xords.append(f"{ord(c):04x}")
+        return xords
     
-    def parse(self): 
-        """ "xxxx xxxx xxxx" -> [["xxxx", "xxxx"], ["xxxx"]] """
-        i = len(self.xords)-1
-        xords = self.xords
-        charlist = list()
-        while i >= 0: 
-            l = list()
-            while xords[i] in self.UNI2TIPA[1]: # recognize modifier
-                l.insert(0, xords[i])
+    def _parse(self):
+        """Group hex codes into characters with modifiers."""
+        charlist = []
+        i = len(self.xords) - 1
+        while i >= 0:
+            char = []
+            while i >= 0 and self.xords[i] in self.UNI2TIPA[1]:
+                char.insert(0, self.xords[i])
                 i -= 1
-            l.insert(0, xords[i])
-            i -= 1
-            charlist.insert(0, l)
+            if i >= 0:
+                char.insert(0, self.xords[i])
+                i -= 1
+            charlist.insert(0, char)
         return charlist
 
-    def ipa2tipa(self):
-        result = self.charlist
-        for i in range(len(self.charlist)):
-            # convert 0-ary char
-            try: result[i][0] = self.UNI2TIPA[0][result[i][0]]
-            except KeyError: continue
-            # convert 1-ary modifier
-            while result[i][-1] in self.UNI2TIPA[1]:
-                result[i][0] =  self.UNI2TIPA[1][result[i].pop()] + '{' + result[i][0] + '}'
-        result = list(chain.from_iterable(result)) # flatten
-        
-        # convert 2-ary modifier
+    def _ipa2tipa(self):
+        result = []
+        for char in self.charlist:
+            base = self.UNI2TIPA[0].get(char[0], char[0])
+            for modifier in char[1:]:
+                if modifier in self.UNI2TIPA[1]:
+                    base = f"{self.UNI2TIPA[1][modifier]}{{{base}}}"
+            result.append(base)
+
+        # Handle 2-ary modifiers
         i = 0
-        while i < len(result):
+        while i < len(result) - 1:
             if result[i] in self.UNI2TIPA[2]:
-                result[i-1] = self.UNI2TIPA[2][result[i]] + '{' + result[i-1] + result[i+1] + '}'
+                result[i-1] = f"{self.UNI2TIPA[2][result[i]]}{{{result[i-1]}{result[i+1]}}}"
                 result = result[:i] + result[i+2:]
-            else: i += 1
+            else:
+                i += 1
+
         return ''.join(result)
 
+    def to_tipa(self):
+        """Convert IPA to TIPA."""
+        return self.tipa
+
 if __name__ == "__main__":
-    txt = ipa("ko̞ko̞ ɲ̟i ɲ̟ɯ̟ᵝːɾʲo̞kɯ̟ᵝ ɕi̥te̞ kɯ̟ᵝda̠sa̠i")
-    print("TIPA:", txt.tipa)
-        
+    ipa = IPA("ko̞ko̞ ɲ̟i ") + IPA("ɲ̟ɯ̟ᵝːɾʲo̞kɯ̟ᵝ ɕi̥te̞ ") + IPA("kɯ̟ᵝda̠sa̠i")
+    print(type(ipa))
+    print("Original:", ipa)
+    print("TIPA:", ipa.to_tipa())
