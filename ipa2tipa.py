@@ -7,13 +7,13 @@ class IPA(str):
     UNI2TIPA: list[dict[str, str]] = []
     script_dir = Path(__file__).parent
     for i in range(3):
-        with open(script_dir / f"uni2tipa{i}.csv", 'r', encoding="utf-8") as f:
+        with open(script_dir / f"uni2tipa/uni2tipa{i}.csv", 'r', encoding="utf-8") as f:
             UNI2TIPA.append({row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)})
 
-    with open(script_dir / "uni2tipa-tone.csv", 'r', encoding="utf-8") as f:
+    with open(script_dir / "uni2tipa/uni2tipa-tone.csv", 'r', encoding="utf-8") as f:
         UNI2TIPA_TONE: dict[str, str] = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)}
 
-    with open(script_dir / "uni2tipa-supsub.csv", 'r', encoding="utf-8") as f:
+    with open(script_dir / "uni2tipa/uni2tipa-supsub.csv", 'r', encoding="utf-8") as f:
         UNI2TIPA_SUPSUB: dict[str, str] = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)}
 
     def __new__(cls, content):
