@@ -1,5 +1,3 @@
-Visit [here](https://t92jp.github.io/ipa2tipa/) to try it out.
-
 # IPA2TIPA
 `ipa2tipa` is a script to convert International Phonetic Alphabet (IPA) into TeX IPA (TIPA), an IPA notation for $\LaTeX$.
 
