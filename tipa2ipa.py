@@ -21,7 +21,7 @@ class TIPA(str):
     
     script_dir = Path(__file__).parent
     
-    # マッピングファイルを読み込み、逆変換用の辞書を作成
+    # load dictionaries
     for i in range(3):
         with open(script_dir / f"uni2tipa/uni2tipa{i}.csv", 'r', encoding="utf-8") as f:
             for row in csv.reader(f, quoting=csv.QUOTE_NONE):
@@ -139,7 +139,6 @@ if __name__ == "__main__":
     print(f"TIPA: {tipa_example}")
     print(f"-> IPA: {ipa_result}")
     
-    # トーンマーカーのテスト
     tipa_tone = r"""t\super{h}jEn\tone{35} \:t{}\:s{}UN\tone{5} pAN\tone{5} p\super{h}7N\tone{35}"""
     ipa_tone = tipa2ipa(tipa_tone)
     print(f"TIPA with tones: {tipa_tone}")
