@@ -1,145 +1,81 @@
-import re
 import csv
-from pathlib import Path
+import re
+from phonetic_types import UnicodeUnit, IPA, TIPA
 
-class TIPA(str):
-    # inverse mapping dictionaries
-    TIPA2UNI: list[dict[str, str]] = [{}, {}, {}]
-    TIPA2UNI_TONE: dict[str, str] = {}
-    TIPA2UNI_SUPSUB: dict[str, str] = {}
-    
-    # superscript mapping
-    SUPERSCRIPT_MAP = {
-        'h': '02b0',  # ʰ
-        'H': '02b1',  # ʱ
-        'j': '02b2',  # ʲ
-        'w': '02b7',  # ʷ
-        'G': '02e0',  # ˠ
-        'P': '02c0',  # ˀ
-        'Q': '02e4',  # ˤ
-    }
-    
-    script_dir = Path(__file__).parent
-    
-    # load dictionaries
-    for i in range(3):
-        with open(script_dir / f"uni2tipa/uni2tipa{i}.csv", 'r', encoding="utf-8") as f:
-            for row in csv.reader(f, quoting=csv.QUOTE_NONE):
-                if len(row) == 2 and row[1]:  # 空でない値のみ逆マッピング
-                    # 値からスペースとカンマを除去して保存
-                    TIPA2UNI[i][row[1].strip()] = row[0]
-    
-    with open(script_dir / "uni2tipa/uni2tipa-tone.csv", 'r', encoding="utf-8") as f:
-        for row in csv.reader(f, quoting=csv.QUOTE_NONE):
-            if len(row) == 2 and row[1]:
-                # 値からスペースとカンマを除去
-                TIPA2UNI_TONE[row[1].strip()] = row[0]
-    
-    with open(script_dir / "uni2tipa/uni2tipa-supsub.csv", 'r', encoding="utf-8") as f:
-        for row in csv.reader(f, quoting=csv.QUOTE_NONE):
-            if len(row) == 2 and row[1]:
-                TIPA2UNI_SUPSUB[row[1].strip()] = row[0]
-    
-    def __new__(cls, content):
-        return super().__new__(cls, content)
-    
-    def __init__(self, content):
-        super().__init__()
-        self.ipa = self._tipa2ipa()
-    
-    def _tipa2ipa(self):
-        text = self
+# Re-export
+__all__ = ['IPA', 'TIPA', 'UnicodeUnit']
+
+# TIPA to Unicode dictionaries (reverse of ipa2tipa)
+TIPA2UNI: list[dict[str, str]] = []
+for i in range(3):
+    with open(f"./uni2tipa/uni2tipa{i}.csv", encoding="utf-8") as f:
+        # 空のTIPA表現をスキップ
+        TIPA2UNI.append({row[1]: row[0] for row in csv.reader(f, quoting=csv.QUOTE_NONE) if row[1]})
+
+with open("./uni2tipa/uni2tipa-tone.csv", encoding="utf-8") as f:
+    TIPA2UNI_TONE = {row[1]: row[0] for row in csv.reader(f, quoting=csv.QUOTE_NONE) if row[1]}
+
+
+class _TIPAToIPAConverter:
+    def convert(self, tipa_string: str) -> str:
+        """TIPA文字列をIPA文字列に変換（簡易実装）"""
+        result = tipa_string
         
-        # process tone markers
-        tone_pattern = r'\\tone\{([1-5]+)\}'
-        text = self._process_tone(text, tone_pattern)
+        superscript_map = {
+            'h': '\u02b0', 'ɦ': '\u02b1', 'j': '\u02b2', 'r': '\u02b3',
+            'ɹ': '\u02b4', 'ʁ': '\u02b6', 'w': '\u02b7', 'y': '\u02b8',
+            'ʕ': '\u02c1', 'l': '\u02e1', 's': '\u02e2', 'x': '\u02e3',
+            'ɣ': '\u02e0', 'n': '\u207f', 'ŋ': '\u1d45',
+        }
+        for base, superscript in superscript_map.items():
+            result = result.replace(rf'\super{{{base}}}', superscript)
         
-        # process 2-ary modifiers
-        for macro, unicode_hex in self.TIPA2UNI[2].items():
-            pattern = fr'{re.escape(macro)}\{{([^}}]+)\}}' 
-            text = self._process_binary_macros(text, pattern, unicode_hex)
+        # アクセント記号（二重引用符は先に処理）
+        result = result.replace('""', 'ˌ')  # secondary stress
+        result = result.replace('"', 'ˈ')  # primary stress
         
-        # process 1-ary modifiers
-        pattern = r'\\([^{}\s]+)\{([^{}]+)\}'
-        text = self._process_unary_macros(text, pattern)
-        
-        for tipa, unicode_hex in self.TIPA2UNI[0].items():
-            if tipa and len(tipa) > 0:
-                text = text.replace(tipa, chr(int(unicode_hex, 16)))
-        
-        return text
-    
-    def _process_tone(self, text, pattern):
-        """process tone markers"""
+        # 声調記号: \tone{35} → ˧˥
+        tone_pattern = r'\\tone\{([0-9]+)\}'
         def replace_tone(match):
-            tone_digits = match.group(1)
-            result = ''
-            for digit in tone_digits:
-                hex_code = self.TIPA2UNI_TONE.get(digit)
-                if hex_code:
-                    result += chr(int(hex_code, 16))
-            return result
+            digits = match.group(1)
+            return ''.join(chr(int(TIPA2UNI_TONE[d], 16)) for d in digits if d in TIPA2UNI_TONE)
+        result = re.sub(tone_pattern, replace_tone, result)
         
-        return re.sub(pattern, replace_tone, text)
-    
-    def _process_binary_macros(self, text, pattern, unicode_hex):
-        """process binary macros"""
-        def replace_binary(match):
-            content = match.group(1)
-            return content
+        # 2項演算子
+        for tipa_cmd, uni in sorted(TIPA2UNI[2].items(), key=lambda x: -len(x[0])):
+            pattern = re.escape(tipa_cmd) + r'\{(.+?)\}'
+            replacement = chr(int(uni, 16)) + r'\1'
+            result = re.sub(pattern, replacement, result)
         
-        return re.sub(pattern, replace_binary, text)
-    
-    def _process_unary_macros(self, text, pattern):
-        """process unary macros"""
-        def replace_unary(match):
-            macro = '\\' + match.group(1)
-            content = match.group(2)
-            
-            if macro == '\\textsuperscript' or macro == '\\super':
-                hex_code = self.SUPERSCRIPT_MAP.get(content)
-                if hex_code:
-                    return chr(int(hex_code, 16))
-                return content
-            
-            # super/subscripts
-            for supsub, code in self.TIPA2UNI_SUPSUB.items():
-                if macro == supsub:
-                    # return as-is
-                    return content
-            
-            # 1-ary modifiers
-            for tipa, hex_code in self.TIPA2UNI[1].items():
-                if macro == tipa:
-                    # 修飾子を適用
-                    char = chr(int(hex_code, 16))
-                    return char + content
-            
-            # no match, return as-is
-            return content
+        # 1項演算子: \~{a} → ã
+        for tipa_cmd, uni in sorted(TIPA2UNI[1].items(), key=lambda x: -len(x[0])):
+            pattern = re.escape(tipa_cmd) + r'\{(.+?)\}'
+            replacement = r'\1' + chr(int(uni, 16))
+            result = re.sub(pattern, replacement, result)
         
-        # process 1-ary modifiers
-        text = re.sub(pattern, replace_unary, text)
+        # 0項演算子（長いものから）
+        for tipa_cmd, uni in sorted(TIPA2UNI[0].items(), key=lambda x: -len(x[0])):
+            result = result.replace(tipa_cmd, chr(int(uni, 16)))
         
-        # process superscripts
-        superscript_pattern = r'\\(?:textsuperscript|super)\{([^{}]+)\}'
-        text = re.sub(superscript_pattern, lambda m: replace_unary(re.match(r'\\((?:textsuperscript|super))\{([^{}]+)\}', '\\' + m.group(0))), text)
-        
-        return text
-    
-    def to_ipa(self):
-        return self.ipa
+        return result
 
-def tipa2ipa(tipa_text):
-    return TIPA(tipa_text).to_ipa()
 
 if __name__ == "__main__":
-    tipa_example = r""""t\super{h}i: ""n\~{a}\~{I}\~{R}i"t\super{h}\|+{u}: "\t{dZ}eI "p\super{h}i:"""
-    ipa_result = tipa2ipa(tipa_example)
-    print(f"TIPA: {tipa_example}")
-    print(f"-> IPA: {ipa_result}")
+    print("=== TIPA文字列を使用 ===")
+    tipa = TIPA(r'"t\super{h}i:')
+    ipa = tipa.to_ipa()
+    print(f"TIPA: {tipa}")
+    print(f"IPA: {ipa}")
+    print(f"TIPA is str: {isinstance(tipa, str)}")
+    print(f"IPA is str: {isinstance(ipa, str)}")
+    print()
     
-    tipa_tone = r"""t\super{h}jEn\tone{35} \:t{}\:s{}UN\tone{5} pAN\tone{5} p\super{h}7N\tone{35}"""
-    ipa_tone = tipa2ipa(tipa_tone)
-    print(f"TIPA with tones: {tipa_tone}")
-    print(f"-> IPA with tones: {ipa_tone}")
+    print("=== 往復変換テスト ===")
+    original_ipa = IPA("ˈtʰiː")
+    tipa = original_ipa.to_tipa()
+    back_to_ipa = tipa.to_ipa()
+    print(f"Original IPA: {original_ipa}")
+    print(f"TIPA: {tipa}")
+    print(f"Back to IPA: {back_to_ipa}")
+    print(f"Match: {original_ipa == back_to_ipa}")
+

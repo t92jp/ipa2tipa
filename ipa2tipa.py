@@ -1,125 +1,115 @@
 from unicodedata import decomposition
 import csv
-from pathlib import Path
+from phonetic_types import UnicodeUnit, IPA, TIPA
 
-class IPA(str):
-    # load dictionaries
-    UNI2TIPA: list[dict[str, str]] = []
-    script_dir = Path(__file__).parent
-    for i in range(3):
-        with open(script_dir / f"uni2tipa/uni2tipa{i}.csv", 'r', encoding="utf-8") as f:
-            UNI2TIPA.append({row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)})
+# Re-export for backward compatibility
+__all__ = ['IPA', 'TIPA', 'UnicodeUnit']
 
-    with open(script_dir / "uni2tipa/uni2tipa-tone.csv", 'r', encoding="utf-8") as f:
-        UNI2TIPA_TONE: dict[str, str] = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)}
+UNI2TIPA: list[dict[str, str]] = []
+for i in range(3):
+    with open(f"./uni2tipa/uni2tipa{i}.csv", encoding="utf-8") as f:
+        UNI2TIPA.append({row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)})
 
-    with open(script_dir / "uni2tipa/uni2tipa-supsub.csv", 'r', encoding="utf-8") as f:
-        UNI2TIPA_SUPSUB: dict[str, str] = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)}
+with open("./uni2tipa/uni2tipa-tone.csv", encoding="utf-8") as f:
+    UNI2TIPA_TONE = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)}
 
-    def __new__(cls, content):
-        return super().__new__(cls, content)
+with open("./uni2tipa/uni2tipa-supsub.csv", encoding="utf-8") as f:
+    UNI2TIPA_SUPSUB = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)}
 
-    def __init__(self, content):
-        super().__init__()
-        self.xords = self._decompose()
-        self.charlist = self._parse()
-        self.tipa = self._ipa2tipa()
 
-    def __add__(self, other):
-        if isinstance(other, IPA):
-            return IPA(super().__add__(other))
-        elif isinstance(other, str):
-            return IPA(super().__add__(other))
-        else:
-            return NotImplemented
+class _IPAToTIPAConverter:
+    def convert(self, ipa_string: str) -> str:
+        xords = self._decompose(ipa_string)
+        chars = self._group_characters(xords)
+        return self._to_tipa(chars)
 
-    def __radd__(self, other):
-        if isinstance(other, str):
-            return IPA(other + self)
-        else:
-            return NotImplemented
-
-    def _decompose(self):
-        """Convert string to list of lowercase hex codes."""
+    @staticmethod
+    def _decompose(text: str) -> list[str]:
         xords = []
-        for c in self:
+        for c in text:
             decom = decomposition(c)
-            if decom:
-                xords.extend(code.lower() for code in decom.split())
-            else:
-                xords.append(f"{ord(c):04x}")
+            xords.extend(code.lower() for code in decom.split()) if decom else xords.append(f"{ord(c):04x}")
         return xords
     
-    def _parse(self):
-        """Group hex codes into characters with modifiers."""
-        charlist = []
-        i = len(self.xords) - 1 # reading from right to left
+    def _group_characters(self, xords: list[str]) -> list[UnicodeUnit]:
+        chars = []
+        i = len(xords) - 1
+        
         while i >= 0:
-            char = []
-            # if tone letter
-            if self.xords[i] in self.UNI2TIPA_TONE:
-                while i >= 0 and self.xords[i] in self.UNI2TIPA_TONE:
-                    char.insert(0, self.xords[i])
+            modifiers = []
+            base = None
+            
+            if xords[i] in UNI2TIPA_TONE:
+                base = xords[i]
+                i -= 1
+                while i >= 0 and xords[i] in UNI2TIPA_TONE:
+                    modifiers.insert(0, xords[i])
                     i -= 1
-
             else:
-                # if modifier
-                while i >= 0 and self.xords[i] in self.UNI2TIPA[1]:
-                    char.insert(0, self.xords[i])
+                while i >= 0 and xords[i] in UNI2TIPA[1]:
+                    modifiers.insert(0, xords[i])
                     i -= 1
-
-                # if base
                 if i >= 0: 
-                    char.insert(0, self.xords[i])
+                    base = xords[i]
+                    i -= 1
+                if i >= 0 and xords[i] in UNI2TIPA_SUPSUB:
+                    modifiers.append(xords[i])
                     i -= 1
 
-                # if sup/sub
-                if i >= 0 and self.xords[i] in self.UNI2TIPA_SUPSUB:
-                    char.append(self.xords[i])
-                    i -= 1
-
-            charlist.insert(0, char)
-        return charlist
-
-    def _ipa2tipa(self):
+            if base is not None:
+                chars.insert(0, UnicodeUnit(base, modifiers) if modifiers else UnicodeUnit(base))
+        
+        return chars
+    
+    def _to_tipa(self, chars: list[UnicodeUnit]) -> str:
         result = []
-        for char in self.charlist:
-            if char[0] in self.UNI2TIPA_TONE:
-                tone = "".join(list(map(self.UNI2TIPA_TONE.get, char)))
+        
+        for char in chars:
+            if char.base in UNI2TIPA_TONE:
+                tone = "".join(UNI2TIPA_TONE.get(m, m) for m in char.modifiers)
+                tone += UNI2TIPA_TONE.get(char.base, char.base)
                 result.append(rf"\tone{{{tone}}}")
                 continue
             
-            base = self.UNI2TIPA[0].get(char[0], char[0]) # if not in dict, return unicode
-
-            # handle 1-ary modifiers
-            for modifier in char[1:]:
-                if modifier in self.UNI2TIPA[1]:
-                    base = f"{self.UNI2TIPA[1][modifier]}{{{base}}}"
-                if modifier in self.UNI2TIPA_SUPSUB:
-                    base = f"{self.UNI2TIPA_SUPSUB[modifier]}{{{base}}}"
+            base = UNI2TIPA[0].get(char.base, char.base)
+            for modifier in char.modifiers:
+                if modifier in UNI2TIPA[1]:
+                    base = f"{UNI2TIPA[1][modifier]}{{{base}}}"
+                if modifier in UNI2TIPA_SUPSUB:
+                    base = f"{UNI2TIPA_SUPSUB[modifier]}{{{base}}}"
             result.append(base)
 
-        # handle 2-ary modifiers
         i = 0
         while i < len(result) - 1:
-            if result[i] in self.UNI2TIPA[2]:
-                result[i-1] = f"{self.UNI2TIPA[2][result[i]]}{{{result[i-1]}{result[i+1]}}}"
+            if result[i] in UNI2TIPA[2]:
+                result[i-1] = f"{UNI2TIPA[2][result[i]]}{{{result[i-1]}{result[i+1]}}}"
                 result = result[:i] + result[i+2:]
             else:
                 i += 1
 
         return ''.join(result)
 
-    def to_tipa(self):
-        """Convert IPA to TIPA."""
-        return self.tipa
 
 if __name__ == "__main__":
-    ipa = IPA("ʲ")
-
-    ipa = IPA("ko̞ko̞ ɲ̟i ") + IPA("ɲ̟ɯ̟ᵝːɾʲo̞kɯ̟ᵝ ɕi̥te̞ ") + IPA("kɯ̟ᵝda̠sa̠i")
-    print(*ipa.__dict__.items(), sep="\n")
-
-    ipa = IPA("ˈtʰiː ˌnãɪ̃ɾ̃iˈtʰu̟ː ˈd͡ʒeɪ ˈpʰiː")
-    print("Original:", ipa)
-    print("TIPA:", ipa.to_tipa())
+    print("# IPA sequence")
+    ipa = IPA("ˈtʰiː ˌnãɪ̃ɾ̃iˈtʰu̟ː ˈd͡ʒeɪ ˈpʰiː")
+    tipa = ipa.to_tipa()
+    print(f"IPA: {ipa}")
+    print(f"TIPA: {tipa}")
+    converter = _IPAToTIPAConverter()
+    print(converter._group_characters(converter._decompose("tʰiː")))
+    print()
+    
+    print("# tonal")
+    ipa2 = IPA("tʰjɛn˧˥ ʈʂʊŋ˥ pɑŋ˥ pʰɤŋ˧˥")
+    print(f"IPA: {ipa2}")
+    print(f"TIPA: {ipa2.to_tipa()}")
+    print()
+    
+    print("# string manipulation")
+    ipa3 = IPA("ko̞ko̞")
+    print(f"Length: {len(ipa3)}")
+    print(f"Upper: {ipa3.upper()}")
+    print(f"Concatenation: {ipa3 + ' test'}")
+    print(f"Upper: {ipa3.upper()}")
+    print(f"Concatenation: {ipa3 + ' test'}")
