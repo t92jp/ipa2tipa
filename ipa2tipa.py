@@ -7,14 +7,14 @@ __all__ = ['IPA', 'TIPA', 'UnicodeUnit']
 
 UNI2TIPA: list[dict[str, str]] = []
 for i in range(3):
-    with open(f"./uni2tipa/uni2tipa{i}.csv", encoding="utf-8") as f:
-        UNI2TIPA.append({row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)})
+    with open(f"./uni2tipa/uni2tipa{i}.tsv", encoding="utf-8") as f:
+        UNI2TIPA.append({row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE, delimiter="\t")})
 
-with open("./uni2tipa/uni2tipa-tone.csv", encoding="utf-8") as f:
-    UNI2TIPA_TONE = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)}
+with open("./uni2tipa/uni2tipa-tone.tsv", encoding="utf-8") as f:
+    UNI2TIPA_TONE = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE, delimiter="\t")}
 
-with open("./uni2tipa/uni2tipa-supsub.csv", encoding="utf-8") as f:
-    UNI2TIPA_SUPSUB = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE)}
+with open("./uni2tipa/uni2tipa-supsub.tsv", encoding="utf-8") as f:
+    UNI2TIPA_SUPSUB = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE, delimiter="\t")}
 
 
 class _IPAToTIPAConverter:
