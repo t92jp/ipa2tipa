@@ -30,37 +30,36 @@
 031e	\|`
 031f	\|+
 0320	\=*
-0321	
-0322	
+0321	\tipaloweraccent{37}
+0322	\tipaloweraccent{36}
 0323	\.*
 0324	\"*
 0325	\r*
-0326	
+0326	\tipaloweraccent{0}
 0327	\c
 0328	\k
 0329	\s
 032a	\|[
 032b	\|w
 032c	\v*
-032d	
-032e	
+032d	\^*
+032e	\tipaloweraccent{8}
 032f	\textsubarch
 0330	\~*
 0331	\=*
-0332	
 0333	\subdoublebar
 0334	\textsuperimposetilde
-0335	
+0335	\ipaclap{-}
 0336	
 0337	
-0338	
+0338	\ipaclap{/}
 0339	\|)
 033a	\|]
 033b	\textsubsquare
 033c	\|m
 033d	\|x
 033e	
-033f	
+033f	\tipaloweraccent{61}
 1dc4	\texthighrise
 1dc5	\textlowrise
 1dc6	

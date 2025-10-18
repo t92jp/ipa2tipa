@@ -90,7 +90,7 @@
 027c	\textlonglegr{}
 027d	\:r{}
 027e	R
-027f	\textlhtlongi
+027f	\textlhtlongi{}
 0280	\;R{}
 0281	K
 0282	\:s{}
@@ -142,7 +142,7 @@
 02b0	\super{h}
 02b1	\super{H}
 02b2	\super{j}
-02b4	
+02b4	\super{\*r{}}
 02b7	\super{w}
 02bc	'
 02c0	\super{P}
