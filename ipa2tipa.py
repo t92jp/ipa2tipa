@@ -1,9 +1,6 @@
 from unicodedata import decomposition
 import csv
-from phonetic_types import UnicodeUnit, IPA, TIPA
-
-# Re-export for backward compatibility
-__all__ = ['IPA', 'TIPA', 'UnicodeUnit']
+from typedefs import UnicodeUnit, IPA
 
 UNI2TIPA: list[dict[str, str]] = []
 for i in range(3):

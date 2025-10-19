@@ -1,5 +1,5 @@
 import unittest
-from ipa2tipa import IPA, TIPA
+from typedefs import IPA, TIPA
 
 
 class IPAToTIPATest(unittest.TestCase):
