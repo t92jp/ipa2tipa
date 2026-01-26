@@ -77,8 +77,8 @@ Internally, the conversion follows these steps:
 | `LICENSE.md`          | this script is distributed under MIT License
 | `ipa2tipa.py`         | main script 
 | `ipa2tipa_test.py`    | brief unittests implemented with a standard library `unittest`
-| `uni2tipa/uni2tipa-supsub.csv` | data in the format of `UTF-8 (hex), tipa macro denoting next super/subscript`
-| `uni2tipa/uni2tipa-tone.csv`   | data in the format of `UTF-8 (hex), tipa macro of tone letters`
-| `uni2tipa/uni2tipa0.csv`       | data in the format of `UTF-8 (hex), tipa macro taking 0 args`
-| `uni2tipa/uni2tipa1.csv`       | data in the format of `UTF-8 (hex), tipa macro taking 1 arg`
-| `uni2tipa/uni2tipa2.csv`       | data in the format of `UTF-8 (hex), tipa macro taking 2 args`
+| `uni2tipa/uni2tipa-supsub.tsv` | data in the format of `UTF-8 (hex), tipa macro denoting next super/subscript`
+| `uni2tipa/uni2tipa-tone.tsv`   | data in the format of `UTF-8 (hex), tipa macro of tone letters`
+| `uni2tipa/uni2tipa0.tsv`       | data in the format of `UTF-8 (hex), tipa macro taking 0 args`
+| `uni2tipa/uni2tipa1.tsv`       | data in the format of `UTF-8 (hex), tipa macro taking 1 arg`
+| `uni2tipa/uni2tipa2.tsv`       | data in the format of `UTF-8 (hex), tipa macro taking 2 args`

@@ -4,13 +4,13 @@ from typedefs import UnicodeUnit, IPA
 
 UNI2TIPA: list[dict[str, str]] = []
 for i in range(3):
-    with open(f"./uni2tipa/uni2tipa{i}.tsv", encoding="utf-8") as f:
+    with open(f"uni2tipa/uni2tipa{i}.tsv", encoding="utf-8") as f:
         UNI2TIPA.append({row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE, delimiter="\t")})
 
-with open("./uni2tipa/uni2tipa-tone.tsv", encoding="utf-8") as f:
+with open("uni2tipa/uni2tipa-tone.tsv", encoding="utf-8") as f:
     UNI2TIPA_TONE = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE, delimiter="\t")}
 
-with open("./uni2tipa/uni2tipa-supsub.tsv", encoding="utf-8") as f:
+with open("uni2tipa/uni2tipa-supsub.tsv", encoding="utf-8") as f:
     UNI2TIPA_SUPSUB = {row[0]: row[1] for row in csv.reader(f, quoting=csv.QUOTE_NONE, delimiter="\t")}
 
 
