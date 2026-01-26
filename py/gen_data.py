@@ -29,7 +29,7 @@ def gen_data():
         reader = csv.reader(f, quoting=csv.QUOTE_NONE, delimiter="\t")
         data['UNI2TIPA_SUPSUB'] = {row[0]: row[1] for row in reader if len(row) >= 2}
     
-    # Write to py/ipa2tipa/data.py
+    # write to py/ipa2tipa/data.py
     output_path = os.path.join(base_dir, "py", "ipa2tipa", "data.py")
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("# Generated from uni2tipa/*.tsv. Do not edit manually.\n\n")
