@@ -2,7 +2,7 @@ import csv
 import os
 
 def gen_data():
-    # Define paths
+    # define paths
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     uni2tipa_dir = os.path.join(base_dir, "uni2tipa")
     
@@ -29,8 +29,8 @@ def gen_data():
         reader = csv.reader(f, quoting=csv.QUOTE_NONE, delimiter="\t")
         data['UNI2TIPA_SUPSUB'] = {row[0]: row[1] for row in reader if len(row) >= 2}
     
-    # Write to py/data.py
-    output_path = os.path.join(base_dir, "py", "data.py")
+    # Write to py/ipa2tipa/data.py
+    output_path = os.path.join(base_dir, "py", "ipa2tipa", "data.py")
     with open(output_path, "w", encoding="utf-8") as f:
         f.write("# Generated from uni2tipa/*.tsv. Do not edit manually.\n\n")
         f.write(f"UNI2TIPA = {repr(data['UNI2TIPA'])}\n\n")
