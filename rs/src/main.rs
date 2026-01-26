@@ -12,6 +12,7 @@ lazy_static! {
     static ref MAP_1: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa1.tsv"));
     static ref MAP_2: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa2.tsv"));
     static ref MAP_TONE: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa-tone.tsv"));
+    static ref MAP_SUPSUB: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa-supsub.tsv"));
 }
 
 fn parse_tsv(content: &str) -> CodeMap {
@@ -88,9 +89,18 @@ impl IpaConverter {
                 }
                 modifiers.reverse();
                 
+                let mut base_opt = None;
                 if i >= 0 {
-                    let base = codes[i as usize];
+                    base_opt = Some(codes[i as usize]);
                     i -= 1;
+                }
+
+                if i >= 0 && MAP_SUPSUB.contains_key(&codes[i as usize]) {
+                    modifiers.push(codes[i as usize]);
+                    i -= 1;
+                }
+
+                if let Some(base) = base_opt {
                     units.push(Unit { base, modifiers });
                 } else {
                     // Dangling modifiers
@@ -117,9 +127,14 @@ impl IpaConverter {
                 match MAP_0.get(&u.base) {
                     Some(base_tipa) => {
                         let res = u.modifiers.iter()
-                            .filter_map(|m| MAP_1.get(m))
-                            .fold(base_tipa.clone(), |acc, mod_tipa| {
-                                format!("{}{{{}}}", mod_tipa, acc)
+                            .fold(base_tipa.clone(), |acc, m| {
+                                if let Some(mod_tipa) = MAP_1.get(m) {
+                                    format!("{}{{{}}}", mod_tipa, acc)
+                                } else if let Some(mod_tipa) = MAP_SUPSUB.get(m) {
+                                    format!("{}{{{}}}", mod_tipa, acc)
+                                } else {
+                                    acc
+                                }
                             });
                         Token::Known(res)
                     }
