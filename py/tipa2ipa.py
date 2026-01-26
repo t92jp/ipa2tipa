@@ -1,14 +1,9 @@
-import csv
 import re
 from typedefs import IPA, TIPA
+from data import UNI2TIPA, UNI2TIPA_TONE
 
-TIPA2UNI: list[dict[str, str]] = []
-for i in range(3):
-    with open(f"./uni2tipa/uni2tipa{i}.csv", encoding="utf-8") as f:
-        TIPA2UNI.append({row[1]: row[0] for row in csv.reader(f, quoting=csv.QUOTE_NONE, delimiter="\t") if row[1]})
-
-with open("./uni2tipa/uni2tipa-tone.csv", encoding="utf-8") as f:
-    TIPA2UNI_TONE = {row[1]: row[0] for row in csv.reader(f, quoting=csv.QUOTE_NONE, delimiter="\t") if row[1]}
+TIPA2UNI = [{v: k for k, v in d.items() if v} for d in UNI2TIPA]
+TIPA2UNI_TONE = {v: k for k, v in UNI2TIPA_TONE.items() if v}
 
 
 class _TIPAToIPAConverter:
