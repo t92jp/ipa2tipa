@@ -1222,6 +1222,7 @@ name = "ipa2tipa"
 version = "0.1.0"
 dependencies = [
  "dioxus",
+ "js-sys",
  "lazy_static",
  "log",
  "unicode-normalization",
