@@ -52,17 +52,25 @@ class _IPAToTIPAConverter:
         
         for char in chars:
             if char.base in UNI2TIPA_TONE:
-                tone = "".join(UNI2TIPA_TONE.get(m, m) for m in char.modifiers)
-                tone += UNI2TIPA_TONE.get(char.base, char.base)
+                tone = "".join(UNI2TIPA_TONE.get(m, r"\*" + chr(int(m, 16))) for m in char.modifiers)
+                tone += UNI2TIPA_TONE.get(char.base, r"\*" + chr(int(char.base, 16)))
                 result.append(rf"\tone{{{tone}}}")
                 continue
             
-            base = UNI2TIPA[0].get(char.base, char.base)
+            if char.base in UNI2TIPA[0]:
+                base = UNI2TIPA[0][char.base]
+            elif char.base in UNI2TIPA[2]:
+                base = char.base
+            else:
+                base = r"\*" + chr(int(char.base, 16))
+
             for modifier in char.modifiers:
                 if modifier in UNI2TIPA[1]:
                     base = f"{UNI2TIPA[1][modifier]}{{{base}}}"
-                if modifier in UNI2TIPA_SUPSUB:
+                elif modifier in UNI2TIPA_SUPSUB:
                     base = f"{UNI2TIPA_SUPSUB[modifier]}{{{base}}}"
+                else:
+                    base = rf"\*{chr(int(modifier, 16))}{{{base}}}"
             result.append(base)
 
         i = 0

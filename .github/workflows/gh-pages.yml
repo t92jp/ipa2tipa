@@ -27,10 +27,8 @@ jobs:
 
       - name: Install Dioxus CLI
         run: |
-          # Install pre-built binary for speed
-          wget -qO- https://github.com/DioxusLabs/dioxus/releases/download/v0.5.7/dx-x86_64-unknown-linux-gnu.tar.gz | tar xzf - 
-          chmod +x dx
-          mv dx /usr/local/bin/
+          curl -L https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-musl.tgz | tar -xvzf - -C ~/.cargo/bin
+          cargo binstall dioxus-cli@0.5.7 -y
 
       - name: Build
         run: |

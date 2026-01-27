@@ -169,7 +169,7 @@ impl Token {
     fn raw(&self) -> String {
         match self {
             Token::Known(s) => s.clone(),
-            Token::Unknown(c) => c.to_string(),
+            Token::Unknown(c) => format!("\\*{}", c),
         }
     }
 }
@@ -208,7 +208,7 @@ fn App() -> Element {
                     for token in tokens.read().iter() {
                         match token {
                             Token::Known(s) => rsx! { span { "{s}" } },
-                            Token::Unknown(c) => rsx! { span { style: "color: #e74c3c; font-weight: bold; background: #fee2e2; padding: 1px 3px; border-radius: 3px; font-family: 'Gentium Book Plus', serif;", "{c}" } },
+                            Token::Unknown(c) => rsx! { span { style: "color: #e74c3c; font-weight: bold; background: #fee2e2; padding: 1px 3px; border-radius: 3px; font-family: 'Gentium Book Plus', serif;", "\\*{c}" } },
                         }
                     }
                 }
@@ -243,6 +243,13 @@ mod tests {
     fn test_tone() {
         let ipa = "tʰjɛn˧˥ ʈʂʊŋ˥ pɑŋ˥ pʰɤŋ˧˥";
         let expected = r#"t\super{h}jEn\tone{35} \:t{}\:s{}UN\tone{5} pAN\tone{5} p\super{h}7N\tone{35}"#;
+        assert_eq!(to_str(IpaConverter::convert(ipa)), expected);
+    }
+
+    #[test]
+    fn test_unknown() {
+        let ipa = "aあb";
+        let expected = r#"a\*あb"#;
         assert_eq!(to_str(IpaConverter::convert(ipa)), expected);
     }
 }
