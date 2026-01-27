@@ -50,7 +50,7 @@ class IntegrationTest(unittest.TestCase):
         """test with tone marks"""
         ipa = IPA("tʰjɛn˧˥ ʈʂʊŋ˥ pɑŋ˥ pʰɤŋ˧˥")
         tipa = ipa.to_tipa()
-        expected = r"""t\super{h}jEn\tone{35} \:t{}\:s{}UN\tone{5} pAN\tone{5} p\super{h}7N\tone{35}"""
+        expected = r"""t\super{h}jEn\tone{35} \:t{}\:s{}UN\tone{55} pAN\tone{55} p\super{h}7N\tone{35}"""
         self.assertEqual(tipa, expected)
 
     def test_rtone(self):

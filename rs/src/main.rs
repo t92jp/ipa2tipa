@@ -127,42 +127,43 @@ impl IpaConverter {
 
     fn translate_units(units: Vec<Unit>) -> Vec<Token> {
         units.into_iter().map(|u| {
-            if MAP_RTONE.contains_key(&u.base) {
-                let mut tone_str = u.modifiers.iter()
-                    .filter_map(|m| MAP_RTONE.get(m))
-                    .cloned()
-                    .collect::<String>();
-                let mut base_tone = MAP_RTONE.get(&u.base).unwrap().clone();
-                // Special logic: a716 with value 1 becomes 11
-                if u.base == 0xa716 && base_tone == "1" {
-                    base_tone = "11".to_string();
-                }
-                tone_str.push_str(&base_tone);
-                Token::Known(format!("\\rtone{{{}}}", tone_str))
-            } else if MAP_TONE.contains_key(&u.base) {
-                let mut tone_str = u.modifiers.iter()
-                    .filter_map(|m| MAP_TONE.get(m))
-                    .cloned()
-                    .collect::<String>();
-                tone_str.push_str(MAP_TONE.get(&u.base).unwrap());
-                Token::Known(format!("\\tone{{{}}}", tone_str))
-            } else {
-                match MAP_0.get(&u.base) {
-                    Some(base_tipa) => {
-                        let res = u.modifiers.iter()
-                            .fold(base_tipa.clone(), |acc, m| {
-                                if let Some(mod_tipa) = MAP_1.get(m) {
-                                    format!("{}{{{}}}", mod_tipa, acc)
-                                } else if let Some(mod_tipa) = MAP_SUPSUB.get(m) {
-                                    format!("{}{{{}}}", mod_tipa, acc)
-                                } else {
-                                    acc
-                                }
-                            });
-                        Token::Known(res)
+            // Common logic for rtone and tone
+            let tone_maps = vec![
+                (MAP_RTONE.clone(), "rtone"),
+                (MAP_TONE.clone(), "tone"),
+            ];
+            
+            for (tone_map, macro_name) in tone_maps {
+                if tone_map.contains_key(&u.base) {
+                    let mut tone_str = u.modifiers.iter()
+                        .filter_map(|m| tone_map.get(m))
+                        .cloned()
+                        .collect::<String>();
+                    tone_str.push_str(tone_map.get(&u.base).unwrap());
+                    // If only one digit, duplicate it
+                    if tone_str.len() == 1 {
+                        tone_str = tone_str.repeat(2);
                     }
-                    None => Token::Unknown(std::char::from_u32(u.base).unwrap_or('?')),
+                    return Token::Known(format!("\\{}{{{}}}", macro_name, tone_str));
                 }
+            }
+            
+            // Not a tone character, process as regular character
+            match MAP_0.get(&u.base) {
+                Some(base_tipa) => {
+                    let res = u.modifiers.iter()
+                        .fold(base_tipa.clone(), |acc, m| {
+                            if let Some(mod_tipa) = MAP_1.get(m) {
+                                format!("{}{{{}}}", mod_tipa, acc)
+                            } else if let Some(mod_tipa) = MAP_SUPSUB.get(m) {
+                                format!("{}{{{}}}", mod_tipa, acc)
+                            } else {
+                                acc
+                            }
+                        });
+                    Token::Known(res)
+                }
+                None => Token::Unknown(std::char::from_u32(u.base).unwrap_or('?')),
             }
         }).collect()
     }
@@ -265,7 +266,7 @@ mod tests {
     #[test]
     fn test_tone() {
         let ipa = "tʰjɛn˧˥ ʈʂʊŋ˥ pɑŋ˥ pʰɤŋ˧˥";
-        let expected = r#"t\super{h}jEn\tone{35} \:t{}\:s{}UN\tone{5} pAN\tone{5} p\super{h}7N\tone{35}"#;
+        let expected = r#"t\super{h}jEn\tone{35} \:t{}\:s{}UN\tone{55} pAN\tone{55} p\super{h}7N\tone{35}"#;
         assert_eq!(to_str(IpaConverter::convert(ipa)), expected);
     }
 

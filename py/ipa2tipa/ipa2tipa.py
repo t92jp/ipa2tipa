@@ -57,37 +57,33 @@ class _IPAToTIPAConverter:
         result = []
         
         for char in chars:
-            if char.base in UNI2TIPA_RTONE:
-                tone = "".join(UNI2TIPA_RTONE.get(m, r"\*" + chr(int(m, 16))) for m in char.modifiers)
-                base_tone = UNI2TIPA_RTONE.get(char.base, r"\*" + chr(int(char.base, 16)))
-                # Special logic: a716 with value 1 becomes 11
-                if char.base == 'a716' and base_tone == '1':
-                    base_tone = '11'
-                tone += base_tone
-                result.append(rf"\rtone{{{tone}}}")
-                continue
-
-            if char.base in UNI2TIPA_TONE:
-                tone = "".join(UNI2TIPA_TONE.get(m, r"\*" + chr(int(m, 16))) for m in char.modifiers)
-                tone += UNI2TIPA_TONE.get(char.base, r"\*" + chr(int(char.base, 16)))
-                result.append(rf"\tone{{{tone}}}")
-                continue
-            
-            if char.base in UNI2TIPA[0]:
-                base = UNI2TIPA[0][char.base]
-            elif char.base in UNI2TIPA[2]:
-                base = char.base
+            # Check rtone and tone together
+            for tone_map, macro_name in [(UNI2TIPA_RTONE, "rtone"), (UNI2TIPA_TONE, "tone")]:
+                if char.base in tone_map:
+                    tone = "".join(tone_map.get(m, r"\*" + chr(int(m, 16))) for m in char.modifiers)
+                    tone += tone_map.get(char.base, r"\*" + chr(int(char.base, 16)))
+                    # If only one digit, duplicate it
+                    if len(tone) == 1:
+                        tone = tone + tone
+                    result.append(rf"\{macro_name}{{{tone}}}")
+                    break
             else:
-                base = r"\*" + chr(int(char.base, 16))
-
-            for modifier in char.modifiers:
-                if modifier in UNI2TIPA[1]:
-                    base = f"{UNI2TIPA[1][modifier]}{{{base}}}"
-                elif modifier in UNI2TIPA_SUPSUB:
-                    base = f"{UNI2TIPA_SUPSUB[modifier]}{{{base}}}"
+                # Not a tone character, process as regular character
+                if char.base in UNI2TIPA[0]:
+                    base = UNI2TIPA[0][char.base]
+                elif char.base in UNI2TIPA[2]:
+                    base = char.base
                 else:
-                    base = rf"\*{chr(int(modifier, 16))}{{{base}}}"
-            result.append(base)
+                    base = r"\*" + chr(int(char.base, 16))
+
+                for modifier in char.modifiers:
+                    if modifier in UNI2TIPA[1]:
+                        base = f"{UNI2TIPA[1][modifier]}{{{base}}}"
+                    elif modifier in UNI2TIPA_SUPSUB:
+                        base = f"{UNI2TIPA_SUPSUB[modifier]}{{{base}}}"
+                    else:
+                        base = rf"\*{chr(int(modifier, 16))}{{{base}}}"
+                result.append(base)
 
         i = 0
         while i < len(result) - 1:
