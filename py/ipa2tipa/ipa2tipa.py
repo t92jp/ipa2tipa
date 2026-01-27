@@ -59,7 +59,11 @@ class _IPAToTIPAConverter:
         for char in chars:
             if char.base in UNI2TIPA_RTONE:
                 tone = "".join(UNI2TIPA_RTONE.get(m, r"\*" + chr(int(m, 16))) for m in char.modifiers)
-                tone += UNI2TIPA_RTONE.get(char.base, r"\*" + chr(int(char.base, 16)))
+                base_tone = UNI2TIPA_RTONE.get(char.base, r"\*" + chr(int(char.base, 16)))
+                # Special logic: a716 with value 1 becomes 11
+                if char.base == 'a716' and base_tone == '1':
+                    base_tone = '11'
+                tone += base_tone
                 result.append(rf"\rtone{{{tone}}}")
                 continue
 

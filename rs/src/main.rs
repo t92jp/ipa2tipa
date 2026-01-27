@@ -132,7 +132,12 @@ impl IpaConverter {
                     .filter_map(|m| MAP_RTONE.get(m))
                     .cloned()
                     .collect::<String>();
-                tone_str.push_str(MAP_RTONE.get(&u.base).unwrap());
+                let mut base_tone = MAP_RTONE.get(&u.base).unwrap().clone();
+                // Special logic: a716 with value 1 becomes 11
+                if u.base == 0xa716 && base_tone == "1" {
+                    base_tone = "11".to_string();
+                }
+                tone_str.push_str(&base_tone);
                 Token::Known(format!("\\rtone{{{}}}", tone_str))
             } else if MAP_TONE.contains_key(&u.base) {
                 let mut tone_str = u.modifiers.iter()
