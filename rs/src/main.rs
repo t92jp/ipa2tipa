@@ -12,6 +12,7 @@ lazy_static! {
     static ref MAP_1: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa1.tsv"));
     static ref MAP_2: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa2.tsv"));
     static ref MAP_TONE: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa-tone.tsv"));
+    static ref MAP_RTONE: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa-rtone.tsv"));
     static ref MAP_SUPSUB: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa-supsub.tsv"));
 }
 
@@ -71,7 +72,17 @@ impl IpaConverter {
             let curr = codes[i as usize];
             let mut modifiers = Vec::new();
 
-            if MAP_TONE.contains_key(&curr) {
+            if MAP_RTONE.contains_key(&curr) {
+                // Reverse tonal grouping
+                let base = curr;
+                i -= 1;
+                while i >= 0 && MAP_RTONE.contains_key(&codes[i as usize]) {
+                    modifiers.push(codes[i as usize]);
+                    i -= 1;
+                }
+                modifiers.reverse();
+                units.push(Unit { base, modifiers });
+            } else if MAP_TONE.contains_key(&curr) {
                 // Tonal grouping
                 let base = curr;
                 i -= 1;
@@ -116,7 +127,14 @@ impl IpaConverter {
 
     fn translate_units(units: Vec<Unit>) -> Vec<Token> {
         units.into_iter().map(|u| {
-            if MAP_TONE.contains_key(&u.base) {
+            if MAP_RTONE.contains_key(&u.base) {
+                let mut tone_str = u.modifiers.iter()
+                    .filter_map(|m| MAP_RTONE.get(m))
+                    .cloned()
+                    .collect::<String>();
+                tone_str.push_str(MAP_RTONE.get(&u.base).unwrap());
+                Token::Known(format!("\\rtone{{{}}}", tone_str))
+            } else if MAP_TONE.contains_key(&u.base) {
                 let mut tone_str = u.modifiers.iter()
                     .filter_map(|m| MAP_TONE.get(m))
                     .cloned()
@@ -250,6 +268,13 @@ mod tests {
     fn test_unknown() {
         let ipa = "aあb";
         let expected = r#"a\*あb"#;
+        assert_eq!(to_str(IpaConverter::convert(ipa)), expected);
+    }
+
+    #[test]
+    fn test_rtone() {
+        let ipa = "꜖a꜒꜔me";
+        let expected = r#"\rtone{11}a\rtone{53}me"#;
         assert_eq!(to_str(IpaConverter::convert(ipa)), expected);
     }
 }

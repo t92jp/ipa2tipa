@@ -53,6 +53,13 @@ class IntegrationTest(unittest.TestCase):
         expected = r"""t\super{h}jEn\tone{35} \:t{}\:s{}UN\tone{5} pAN\tone{5} p\super{h}7N\tone{35}"""
         self.assertEqual(tipa, expected)
 
+    def test_rtone(self):
+        """test with reverse tone marks"""
+        ipa = IPA("꜖a꜒꜔me")
+        tipa = ipa.to_tipa()
+        expected = r"""\rtone{11}a\rtone{53}me"""
+        self.assertEqual(tipa, expected)
+
 
 if __name__ == "__main__":
     unittest.main()

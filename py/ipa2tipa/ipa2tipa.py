@@ -1,6 +1,6 @@
 from unicodedata import decomposition
 from .typedefs import UnicodeUnit, IPA
-from .data import UNI2TIPA, UNI2TIPA_TONE, UNI2TIPA_SUPSUB
+from .data import UNI2TIPA, UNI2TIPA_TONE, UNI2TIPA_RTONE, UNI2TIPA_SUPSUB
 
 
 class _IPAToTIPAConverter:
@@ -25,7 +25,13 @@ class _IPAToTIPAConverter:
             modifiers = []
             base = None
             
-            if xords[i] in UNI2TIPA_TONE:
+            if xords[i] in UNI2TIPA_RTONE:
+                base = xords[i]
+                i -= 1
+                while i >= 0 and xords[i] in UNI2TIPA_RTONE:
+                    modifiers.insert(0, xords[i])
+                    i -= 1
+            elif xords[i] in UNI2TIPA_TONE:
                 base = xords[i]
                 i -= 1
                 while i >= 0 and xords[i] in UNI2TIPA_TONE:
@@ -51,6 +57,12 @@ class _IPAToTIPAConverter:
         result = []
         
         for char in chars:
+            if char.base in UNI2TIPA_RTONE:
+                tone = "".join(UNI2TIPA_RTONE.get(m, r"\*" + chr(int(m, 16))) for m in char.modifiers)
+                tone += UNI2TIPA_RTONE.get(char.base, r"\*" + chr(int(char.base, 16)))
+                result.append(rf"\rtone{{{tone}}}")
+                continue
+
             if char.base in UNI2TIPA_TONE:
                 tone = "".join(UNI2TIPA_TONE.get(m, r"\*" + chr(int(m, 16))) for m in char.modifiers)
                 tone += UNI2TIPA_TONE.get(char.base, r"\*" + chr(int(char.base, 16)))
