@@ -4,6 +4,7 @@ default_platform = "web"
 
 [web.app]
 title = "IPA to TIPA"
+base_path = ""
 
 [web.watcher]
 reload_html = true

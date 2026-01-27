@@ -33,12 +33,12 @@ jobs:
       - name: Build
         run: |
           cd rs
-          # GitHub Pages is hosted at /<repo-name>/, so we set the base path accordingly
-          # extract repo name from github.repository (owner/repo)
+          # GitHub Pages is hosted at /<repo-name>/, so we set the base path in Dioxus.toml
           REPO_NAME=$(echo "${{ github.repository }}" | cut -d'/' -f2)
-          echo "Building with base path: /$REPO_NAME/"
+          echo "Setting base path to: $REPO_NAME"
+          sed -i "s/base_path = .*/base_path = \"$REPO_NAME\"/" Dioxus.toml
           
-          dx build --release --base-path "/$REPO_NAME/"
+          dx build --release
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
