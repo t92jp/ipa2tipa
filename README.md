@@ -1,8 +1,7 @@
 # IPA2TIPA
-
 Convert International Phonetic Alphabet (IPA) to TeX IPA (TIPA).
 
-Demo: https://t92jp.github.io/ipa2tipa/
+Try me at [t92.jp/ipa2tipa]
 
 # Project layout
 
