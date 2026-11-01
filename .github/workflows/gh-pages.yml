@@ -28,7 +28,10 @@ jobs:
       - name: Install Dioxus CLI
         run: |
           curl -L https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-musl.tgz | tar -xvzf - -C ~/.cargo/bin
-          cargo binstall dioxus-cli@0.7.10 -y
+          # Use the same dioxus-cli version as the dioxus crate locked in Cargo.lock
+          DX_VERSION=$(grep -A1 '^name = "dioxus"$' rs/Cargo.lock | sed -n 's/^version = "\(.*\)"/\1/p')
+          echo "Installing dioxus-cli $DX_VERSION"
+          cargo binstall "dioxus-cli@$DX_VERSION" -y
 
       - name: Build
         run: |

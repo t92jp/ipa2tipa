@@ -45,7 +45,8 @@ print(IPA("tʰjɛn˧˥").to_tipa()) # t\super{h}jEn\tone{35}
 
 ```bash
 cd rs
-# requires dioxus-cli 0.7: cargo binstall dioxus-cli@0.7.10
+# requires dioxus-cli matching the dioxus version in rs/Cargo.lock
+# e.g. cargo binstall dioxus-cli@<version>
 dx serve
 ```
 
