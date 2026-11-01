@@ -28,7 +28,7 @@ jobs:
       - name: Install Dioxus CLI
         run: |
           curl -L https://github.com/cargo-bins/cargo-binstall/releases/latest/download/cargo-binstall-x86_64-unknown-linux-musl.tgz | tar -xvzf - -C ~/.cargo/bin
-          cargo binstall dioxus-cli@0.5.7 -y
+          cargo binstall dioxus-cli@0.7.10 -y
 
       - name: Build
         run: |
@@ -38,12 +38,12 @@ jobs:
           echo "Setting base path to: $REPO_NAME"
           sed -i "s/base_path = .*/base_path = \"$REPO_NAME\"/" Dioxus.toml
           
-          dx build --release
+          dx build --release --platform web
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: rs/dist
+          path: rs/target/dx/ipa2tipa/release/web/public
 
   deploy:
     environment:

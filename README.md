@@ -8,7 +8,7 @@ Try me from [t92.jp/ipa2tipa](https://t92.jp/ipa2tipa)
 
 - uni2tipa: mapping tables
 - py/ipa2tipa: Python library
-- rs: Dioxus web app
+- rs: Dioxus 0.7 web app
 
 ## uni2tipa (mapping tables)
 
@@ -45,6 +45,7 @@ print(IPA("tʰjɛn˧˥").to_tipa()) # t\super{h}jEn\tone{35}
 
 ```bash
 cd rs
+# requires dioxus-cli 0.7: cargo binstall dioxus-cli@0.7.10
 dx serve
 ```
 

@@ -1,20 +1,18 @@
 use dioxus::prelude::*;
-use lazy_static::lazy_static;
 use std::collections::HashMap;
+use std::sync::LazyLock;
 use unicode_normalization::UnicodeNormalization;
 
 // --- Data Structures ---
 
 type CodeMap = HashMap<u32, String>;
 
-lazy_static! {
-    static ref MAP_0: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa0.tsv"));
-    static ref MAP_1: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa1.tsv"));
-    static ref MAP_2: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa2.tsv"));
-    static ref MAP_TONE: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa-tone.tsv"));
-    static ref MAP_RTONE: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa-rtone.tsv"));
-    static ref MAP_SUPSUB: CodeMap = parse_tsv(include_str!("../../uni2tipa/uni2tipa-supsub.tsv"));
-}
+static MAP_0: LazyLock<CodeMap> = LazyLock::new(|| parse_tsv(include_str!("../../uni2tipa/uni2tipa0.tsv")));
+static MAP_1: LazyLock<CodeMap> = LazyLock::new(|| parse_tsv(include_str!("../../uni2tipa/uni2tipa1.tsv")));
+static MAP_2: LazyLock<CodeMap> = LazyLock::new(|| parse_tsv(include_str!("../../uni2tipa/uni2tipa2.tsv")));
+static MAP_TONE: LazyLock<CodeMap> = LazyLock::new(|| parse_tsv(include_str!("../../uni2tipa/uni2tipa-tone.tsv")));
+static MAP_RTONE: LazyLock<CodeMap> = LazyLock::new(|| parse_tsv(include_str!("../../uni2tipa/uni2tipa-rtone.tsv")));
+static MAP_SUPSUB: LazyLock<CodeMap> = LazyLock::new(|| parse_tsv(include_str!("../../uni2tipa/uni2tipa-supsub.tsv")));
 
 fn parse_tsv(content: &str) -> CodeMap {
     content.lines()
@@ -200,8 +198,9 @@ impl Token {
 
 // --- UI Components ---
 
+const FONT_CSS: &str = "https://fonts.googleapis.com/css2?family=Gentium+Book+Plus:ital,wght@0,400;0,700;1,400;1,700&display=swap";
+
 fn main() {
-    wasm_logger::init(wasm_logger::Config::default());
     launch(App);
 }
 
@@ -211,6 +210,7 @@ fn App() -> Element {
     let tokens = use_memo(move || IpaConverter::convert(&ipa_input.read()));
     
     rsx! {
+        document::Stylesheet { href: FONT_CSS }
         div {
             style: "padding: 20px; max-width: 800px; margin: 0 auto; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;",
             h1 { style: "color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 0;", "IPA to TIPA" }
